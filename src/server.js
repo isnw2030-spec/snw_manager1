@@ -24,9 +24,14 @@ db.exec(`
     contact_name TEXT,
     contact_phone TEXT,
     edu_date TEXT,
-    edu_time TEXT,
+    edu_time TEXT,      
+    total_hours INTEGER, 
+    class_count INTEGER, 
+    budget INTEGER,      
     edu_category TEXT,
     edu_detail TEXT,
+    target_audience TEXT,
+    student_count INTEGER, 
     status TEXT DEFAULT 'PENDING',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
@@ -267,6 +272,31 @@ app.get('/', (c) => {
               <input type="text" name="edu_time" placeholder="예: 14:00~16:00" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" />
             </div>
           </div>
+            <div class="grid grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">총 교시</label>
+              <input type="number" name="total_hours" placeholder="4" class="w-full border border-gray-300 rounded-lg p-2.5 outline-none transition" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">학급 수</label>
+              <input type="number" name="class_count" placeholder="3" class="w-full border border-gray-300 rounded-lg p-2.5 outline-none transition" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">예산(원)</label>
+              <input type="number" name="budget" placeholder="500000" class="w-full border border-gray-300 rounded-lg p-2.5 outline-none transition" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+             <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">교육 대상</label>
+              <input type="text" name="target_audience" placeholder="중학교 2학년" class="w-full border border-gray-300 rounded-lg p-2.5 outline-none transition" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">학생 수</label>
+              <input type="number" name="student_count" placeholder="60" class="w-full border border-gray-300 rounded-lg p-2.5 outline-none transition" />
+            </div>
+          </div>
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-1">교육 분야 <span class="text-red-500">*</span></label>
             <select name="edu_category" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
@@ -294,12 +324,24 @@ app.get('/', (c) => {
 // 2. 의뢰 등록
 app.post('/requests', async (c) => {
   const body = await c.req.parseBody()
+  
+  // 텅 빈 값이 오면 0이나 빈 문자로 처리 (에러 방지용)
+  const total_hours = body.total_hours || 0;
+  const class_count = body.class_count || 0;
+  const budget = body.budget || 0;
+  const student_count = body.student_count || 0;
+
   db.prepare(`
-    INSERT INTO requests (org_name, contact_name, contact_phone, edu_date, edu_time, edu_category, edu_detail)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO requests (
+      org_name, contact_name, contact_phone, edu_date, 
+      edu_time, total_hours, class_count, budget,
+      edu_category, edu_detail, target_audience, student_count
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
-    body.org_name, body.contact_name, body.contact_phone, 
-    body.edu_date, body.edu_time, body.edu_category, body.edu_detail
+    body.org_name, body.contact_name, body.contact_phone, body.edu_date, 
+    body.edu_time, total_hours, class_count, budget,
+    body.edu_category, body.edu_detail, body.target_audience, student_count
   )
   return c.redirect('/')
 })
