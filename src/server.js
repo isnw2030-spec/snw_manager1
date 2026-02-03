@@ -11,7 +11,7 @@ const Layout = (children) => html`
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>강사뱅크 운영 시스템</title>
+    <title>강사뱅크 운영 시스템 (Cloud)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
     <script>
@@ -31,7 +31,7 @@ const Layout = (children) => html`
     <nav class="bg-blue-600 text-white p-4 shadow-lg sticky top-0 z-50">
       <div class="container mx-auto flex justify-between items-center">
         <h1 class="text-xl font-bold flex items-center gap-2">
-          <i class="fas fa-chalkboard-teacher"></i> 강사뱅크 매니저 (Cloud Version)
+          <i class="fas fa-chalkboard-teacher"></i> 강사뱅크 매니저
         </h1>
         <div class="space-x-4 text-sm font-medium">
           <a href="/" class="hover:text-blue-200 transition">대시보드</a>
@@ -49,9 +49,7 @@ const Layout = (children) => html`
 
 // 1. 대시보드 (D1 DB 연동)
 app.get('/', async (c) => {
-  // Cloudflare D1은 비동기(async/await)로 작동합니다.
-  // c.env.DB 가 바로 아까 wrangler.toml에서 설정한 그 데이터베이스입니다.
-  
+  // Cloudflare D1 연결 (c.env.DB 사용)
   const { results: requests } = await c.env.DB.prepare(`
     SELECT r.*, g.name as group_name, a.admin_status 
     FROM requests r 
@@ -117,14 +115,13 @@ app.get('/', async (c) => {
                 </td>
                 <td class="py-3 px-4">
                   <div class="text-xs font-bold text-indigo-600 mb-1">
-                    ${req.edu_category === 'JOB' ? '직업체험' : req.edu_category === 'COACHING' ? '학습코칭' : req.edu_category === 'SILVER' ? '실버인지' : '기타'}
+                    ${req.edu_category === 'JOB' ? '직업체험' : req.edu_category === 'COACHING' ? '학습코칭' : '실버인지'}
                   </div>
                   <div class="text-xs text-gray-500">예산: ${req.budget ? req.budget.toLocaleString() : '0'}원</div>
                 </td>
                 <td class="py-3 px-4">
                   <div class="text-sm font-medium">${req.edu_date}</div>
                   <div class="text-xs text-gray-500">${req.edu_time || '-'} (${req.total_hours || 0}교시)</div>
-                  <div class="text-xs text-gray-400 mt-0.5">${req.class_count || 0}학급 / ${req.student_count || 0}명</div>
                 </td>
                 <td class="py-3 px-4">
                   ${req.group_name ? html`<span class="text-blue-600 text-sm font-medium">${req.group_name}</span>` : html`<span class="text-gray-400 text-sm">-</span>`}
@@ -153,7 +150,7 @@ app.get('/', async (c) => {
       </div>
     </div>
 
-    <!-- 의뢰 등록 모달 (짱구님이 원하던 항목 완벽 반영) -->
+    <!-- 의뢰 등록 모달 (수정된 항목 반영) -->
     <div id="requestModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 justify-center items-center z-50">
       <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-lg m-4 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-6 border-b pb-4">
@@ -161,10 +158,7 @@ app.get('/', async (c) => {
           <button onclick="toggleModal('requestModal')" class="text-2xl">&times;</button>
         </div>
         <form action="/requests" method="post" class="space-y-4">
-          <div>
-            <label class="block text-sm font-bold text-gray-700 mb-1">기관명</label>
-            <input type="text" name="org_name" class="w-full border rounded p-2" required />
-          </div>
+          <div><label class="block text-sm font-bold mb-1">기관명</label><input type="text" name="org_name" class="w-full border rounded p-2" required /></div>
           <div class="grid grid-cols-2 gap-4">
             <div><label class="block text-sm font-bold mb-1">담당자</label><input type="text" name="contact_name" class="w-full border rounded p-2" required /></div>
             <div><label class="block text-sm font-bold mb-1">연락처</label><input type="text" name="contact_phone" class="w-full border rounded p-2" required /></div>
@@ -174,7 +168,6 @@ app.get('/', async (c) => {
             <div><label class="block text-sm font-bold mb-1">시간</label><input type="text" name="edu_time" placeholder="14:00~16:00" class="w-full border rounded p-2" /></div>
           </div>
           
-          <!-- 추가된 상세 항목들 -->
           <div class="grid grid-cols-3 gap-2 bg-gray-50 p-3 rounded">
             <div><label class="block text-xs font-bold mb-1">총 교시</label><input type="number" name="total_hours" placeholder="4" class="w-full border rounded p-1" /></div>
             <div><label class="block text-xs font-bold mb-1">학급 수</label><input type="number" name="class_count" placeholder="3" class="w-full border rounded p-1" /></div>
@@ -195,10 +188,7 @@ app.get('/', async (c) => {
               <option value="ETC">기타</option>
             </select>
           </div>
-          <div>
-            <label class="block text-sm font-bold mb-1">상세 내용</label>
-            <textarea name="edu_detail" rows="2" class="w-full border rounded p-2"></textarea>
-          </div>
+          <div><label class="block text-sm font-bold mb-1">상세 내용</label><textarea name="edu_detail" rows="2" class="w-full border rounded p-2"></textarea></div>
           <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700">등록하기</button>
         </form>
       </div>
@@ -206,11 +196,10 @@ app.get('/', async (c) => {
   `))
 })
 
-// 2. 의뢰 등록 처리 (Cloudflare D1 전용 코드)
+// 2. 의뢰 등록 처리 (Cloudflare D1 전용)
 app.post('/requests', async (c) => {
   const body = await c.req.parseBody()
   
-  // D1 쿼리 실행 (DB 바인딩 사용)
   await c.env.DB.prepare(`
     INSERT INTO requests (
       org_name, contact_name, contact_phone, edu_date, 
@@ -226,7 +215,7 @@ app.post('/requests', async (c) => {
   return c.redirect('/')
 })
 
-// 3. 배정 처리
+// 3. 배정 처리 (D1 전용)
 app.post('/assign', async (c) => {
   const body = await c.req.parseBody()
   const { request_id, group_id } = body;
@@ -236,7 +225,6 @@ app.post('/assign', async (c) => {
 
   const adminStatus = group.type === 'CLUB' ? 'WAITING_DOCS' : 'CONTACT_SHARED';
 
-  // 배치(Batch) 실행
   await c.env.DB.batch([
     c.env.DB.prepare('INSERT INTO assignments (request_id, group_id, admin_status) VALUES (?, ?, ?)').bind(request_id, group_id, adminStatus),
     c.env.DB.prepare("UPDATE requests SET status = 'ASSIGNED' WHERE id = ?").bind(request_id)
@@ -248,10 +236,8 @@ app.post('/assign', async (c) => {
 // 4. 강사 단체 관리
 app.get('/groups', async (c) => {
   const { results: groups } = await c.env.DB.prepare('SELECT * FROM groups ORDER BY created_at DESC').all();
-  
   return c.html(Layout(html`
     <h2 class="text-2xl font-bold mb-6">강사 단체 관리</h2>
-    
     <div class="bg-white p-6 rounded-lg shadow-sm border mb-8">
       <h3 class="font-bold mb-4">새 단체 등록</h3>
       <form action="/groups" method="post" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -269,7 +255,6 @@ app.get('/groups', async (c) => {
         <button type="submit" class="bg-green-600 text-white font-bold py-2 rounded md:col-span-2">등록하기</button>
       </form>
     </div>
-
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       ${groups.map(g => html`
         <div class="bg-white p-5 rounded shadow border border-l-4 ${g.type === 'CLUB' ? 'border-l-yellow-400' : 'border-l-green-500'}">
