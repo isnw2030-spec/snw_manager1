@@ -8,7 +8,7 @@
     {
       "binding": "DB",
       "database_name": "webapp-production",
-      "database_id": "dummy-id-for-local-dev"
+      "database_id": "npx wrangler d1 create prod-db"
     }
   ]
 }
